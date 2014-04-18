@@ -1,6 +1,7 @@
 # Sample Invocation
 # python parser.py test_10000 test10000_rows test10000_cols test10000_sm
 
+import enchant
 import re
 import sys
 import os
@@ -15,6 +16,7 @@ co_occur = {}
 # Regex to match only words having letters. Filter out numbers, crappy urls etc.
 regex = re.compile(r'^[a-zA-Z]+$')
 
+english_dict = enchant.Dict("en_US")
 ##############################################################
 # Helper Functions.
 
@@ -22,9 +24,17 @@ regex = re.compile(r'^[a-zA-Z]+$')
 def clean(word):
     if word.endswith("."):
         word = word[:-1]
+    if (word.strip() == ""):
+        return None
     if (len(word) < 3):
         return None
-    return regex.match(word)
+    try:
+        word = unicode(word, "utf-8")
+        if (english_dict.check(word)):
+            return regex.match(word)
+    except:
+        pass
+    return None
 
 # Sentence is a collection of the words tagged. Sentence is a list and each word is stored as string.
 def update_co_occur(sentence):
@@ -88,11 +98,34 @@ def update_co_occur(sentence):
                     print "Error-Location2: ", ex
 
 ##############################################################
+def dump(prefix):
+    # Write files.
+    rows_file = open(str(prefix) + "_" + sys.argv[2], "w")
+    cols_file = open(str(prefix) + "_" + sys.argv[3], "w")
+    sm_file   = open(str(prefix) + "_" + sys.argv[4], "w")
+    
+    cols = {}
+    for x in sorted(co_occur):
+        for y in sorted(co_occur[x]):
+            cols[y] = True
+            sm_file.write(str(x) + "\t" + str(y) + "\t" + str(co_occur[x][y]) + "\n")
+    
+    sm_file.close()
+    rows_file.write("\n".join(sorted(co_occur.keys())))
+    cols_file.write("\n".join(sorted(cols.keys())))
+    
+    rows_file.close()
+    cols_file.close()
+    sm_file.close()
+
+##############################################################
 # This is where main action starts.
 
+count = 0
 # If first argument is folder, get list of files inside it. If it is a file, then use that file.
 files = map(lambda x: sys.argv[1] + "/" + x, os.listdir(sys.argv[1])) if os.path.isdir(sys.argv[1]) else [sys.argv[1]]
 for file in files:
+    count += 1
     with open(file, "r")  as f:
         sentence = []
         xmap = mmap.mmap(f.fileno(), 0, prot=mmap.PROT_READ)
@@ -107,26 +140,11 @@ for file in files:
             else:
                 if line.strip() != "":
                     sentence.append(line.strip())
+    if (count % 5 == 0):
+        dump(count)
 
-# Write files.
-rows_file = open(sys.argv[2], "w")
-cols_file = open(sys.argv[3], "w")
-sm_file = open(sys.argv[4], "w")
-
-cols = {}
-for x in sorted(co_occur):
-    for y in sorted(co_occur[x]):
-        cols[y] = True
-        sm_file.write(str(x) + "\t" + str(y) + "\t" + str(co_occur[x][y]) + "\n")
-
-sm_file.close()
-rows_file.write("\n".join(sorted(co_occur.keys())))
-cols_file.write("\n".join(sorted(cols.keys())))
-
-rows_file.close()
-cols_file.close()
-sm_file.close()
-
+if(counta % 5 != 0):
+    dump(count)
 # End of File.
 ##############################################################
 
