@@ -10,9 +10,9 @@ if __name__ == '__main__':
     # set constants
     data_path = "/Users/bansal/Desktop/NLP/Project/English-Lexicalized-Text-Substituion/"
     log_file = data_path + "all.log"
-    core_cooccurrence_file = data_path + "co_occur_file_temp"
-    core_row_file = data_path + "row_file_temp"
-    core_col_file = data_path + "col_file_temp"
+    core_cooccurrence_file = data_path + "co_occur_file"
+    core_row_file = data_path + "row_file"
+    core_col_file = data_path + "col_file"
     core_space_file = data_path + "core.pkl"
     
     # config log file
@@ -25,9 +25,9 @@ if __name__ == '__main__':
     print "Applying ppmi weighting"
     core_space = core_space.apply(PpmiWeighting())
     print "Applying feature selection"
-    core_space = core_space.apply(TopFeatureSelection(500))
+    core_space = core_space.apply(TopFeatureSelection(5000))
     print "Applying svd 500"
-    core_space = core_space.apply(Svd(10))
+    core_space = core_space.apply(Svd(100))
     
     print "Saving the semantic space"
     io_utils.save(core_space, core_space_file)
