@@ -20,20 +20,28 @@ english_dict = enchant.Dict("en_US")
 ##############################################################
 # Helper Functions.
 
+__cleaned__ = {}
 # Clean the word. 
 def clean(word):
-    if word.endswith("."):
-        word = word[:-1]
-    if (word.strip() == ""):
+    if word in __cleaned__:
+        return __cleaned__[word]
+
+    xword = word
+    if xword.endswith("."):
+        xword = word[:-1]
+    if (xword.strip() == "" or len(xword) < 3):
+        __cleaned__[word] = None
         return None
-    if (len(word) < 3):
-        return None
+
     try:
-        word = unicode(word, "utf-8")
-        if (english_dict.check(word)):
-            return regex.match(word)
+        xword = unicode(xword, "utf-8")
+        if (english_dict.check(xword)):
+            result = regex.match(xword)
+            __cleaned__[word] = result
+            return result
     except:
         pass
+    __cleaned__[word] = None
     return None
 
 # Sentence is a collection of the words tagged. Sentence is a list and each word is stored as string.
