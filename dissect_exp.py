@@ -6,13 +6,15 @@ from composes.similarity.cos import CosSimilarity
 from composes.utils import io_utils
 from composes.utils import log_utils
 
+import sys
 if __name__ == '__main__':
     # set constants
-    data_path = "/Users/bansal/Desktop/NLP/Project/English-Lexicalized-Text-Substituion/"
+    data_path = sys.argv[0] + "/" + sys.argv[1] + "_"
+
     log_file = data_path + "all.log"
-    core_cooccurrence_file = data_path + "co_occur_file"
-    core_row_file = data_path + "row_file"
-    core_col_file = data_path + "col_file"
+    core_cooccurrence_file = data_path + "GemmaData_sm"
+    core_row_file = data_path + "GemmaData_rows"
+    core_col_file = data_path + "GemmaData_cols"
     core_space_file = data_path + "core.pkl"
     
     # config log file
@@ -32,7 +34,6 @@ if __name__ == '__main__':
     print "Saving the semantic space"
     io_utils.save(core_space, core_space_file)
     
-    print "Finding 10 neighbors of \"ability\""
-    import sys
-    neighbors = core_space.get_neighbours(sys.argv[1], 10, CosSimilarity())
-    print neighbors
+    #print "Finding 10 neighbors of " + sys.argv[1]
+    #neighbors = core_space.get_neighbours(sys.argv[1], 10, CosSimilarity())
+    #print neighbors
