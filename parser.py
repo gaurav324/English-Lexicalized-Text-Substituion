@@ -2,7 +2,9 @@
 # python parser.py test_10000 test10000_rows test10000_cols test10000_sm
 
 import re
-import sys, os
+import sys
+import os
+import mmap
 
 ##############################################################
 # Globals.
@@ -20,6 +22,8 @@ regex = re.compile(r'^[a-zA-Z]+$')
 def clean(word):
     if word.endswith("."):
         word = word[:-1]
+    if (len(word) < 3):
+        return None
     return regex.match(word)
 
 # Sentence is a collection of the words tagged. Sentence is a list and each word is stored as string.
@@ -91,7 +95,8 @@ files = os.listdir(sys.argv[1]) if os.path.isdir(sys.argv[1]) else [sys.argv[1]]
 for file in files:
     with open(file, "r")  as f:
         sentence = []
-        for line in f:
+        xmap = mmap.mmap(f.fileno(), 0, prot=mmap.PROT_READ)
+	for line in iter(xmap.readline, ""):
             if line.strip().startswith("<s>"):
                 sentence = []
             elif line.strip().startswith("<text") or line.strip().startswith("</text"):
