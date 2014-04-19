@@ -102,6 +102,16 @@ def update_co_occur(sentence):
                                 co_occur[current_word[0]][next_word[0]] = 1
                         else:
                             co_occur[current_word[0]] = {next_word[0] : 1}
+                        
+                        # Update co-occurance matrix in the reverse order also.
+                        if next_word[0] in co_occur:
+                            if current_word[0] in co_occur[next_word[0]]:
+                                co_occur[next_word[0]][current_word[0]] += 1
+                            else:
+                                co_occur[next_word[0]][current_word[0]] = 1
+                        else:
+                            co_occur[next_word[0]] = {current_word[0] : 1}
+
                 except IndexError, ex:
                     print "Error-Location2: ", ex
 
