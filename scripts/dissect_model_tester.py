@@ -2,6 +2,10 @@
 This script is used to test the variations of dissect models. After creation of the model, 
 it test against the actual test data.
 
+Sample Invocation:
+
+python /Users/gnanda/nlp/final_project/English-Lexicalized-Text-Substituion/scripts/dissect_model_tester.py --pkl_file /Users/gnanda/nlp/final_project/English-Lexicalized-Text-Substituion/data/150_with_ppmi.pkl --xml_input /Users/gnanda/nlp/final_project/English-Lexicalized-Text-Substituion/TaskTestData/trial/lexsub_trial_cleaned.xml --lwindow 1 --rwindow 1 --ppmi --output_to nanda_out10
+
 """
 import nltk
 import operator
