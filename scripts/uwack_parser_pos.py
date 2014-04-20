@@ -10,7 +10,7 @@ import mmap
 ##############################################################
 # Globals.
 
-allowed_pos = ['jj','jjr','jjs','jjt','nn','nns','np','nps','nr','nrs','prp','pp','rb','vb','vbd','vbg','vbn','vbz', 'vbp', 'nnp', 'n', 'prp$', 'prp', 'wdt', 'jj$','jjr$','jjs$','jjt$','nn$','np$','nps$','pp$','rb$','vb$','vbd$','vbn$','vbz$','nnp$']
+allowed_pos = ['jj','jjr','jjs','jjt','nn','nns','np','nps','nr','nrs','prp','pp','rb','rbr','rbs','vb','vbd','vbg','vbn','vbz', 'vbp','vhd','vhp','vhz','vv','vvd','vvg','vvn','vvp','vvz', 'nnp', 'prp$', 'jj$','jjr$','jjs$','jjt$','nn$','np$','nps$','pp$','rb$','vb$','vbd$','vbn$','vbz$','nnp$']
 
 #allowed_pos = ['nn', 'nns', 'vb', 'vbp', 'vbg', 'vbd', 'nnp', 'jj', 'jjr', 'rb', 'n', 'prp$', 'prp', 'wdt']
 co_occur = {}
