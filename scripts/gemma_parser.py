@@ -151,7 +151,7 @@ for file in files:
     if (count % 5 == 0):
         dump(count)
 
-if(counta % 5 != 0):
+if(count % 5 != 0):
     dump(count)
 # End of File.
 ##############################################################
