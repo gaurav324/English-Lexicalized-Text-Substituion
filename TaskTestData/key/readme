@@ -1,0 +1,53 @@
+contents of the tar file :-
+
+gold: the gold_file for the best and oot tasks
+
+mwgold: the gold_file for the multiword task
+
+MRsamples: a list of the words (with part of speech) where sentence
+selection was performed manually. Used by scoreFA.pl for the "further
+analysis" results.
+
+mwids: a list of ids identified as multiwords by having a majority
+vote by 2 or more annotators for the same multiword (lemmatised
+phrase). Used by scoreFA.pl for the "further analysis" results.
+
+readme : this file
+
+score.pl: the scorer. This should be run as described in section 3 of
+the document that was released with the trial run data and is also
+available at
+http://nlp.cs.swarthmore.edu/semeval/tasks/task10/task10documentation.pdf
+
+scoreFA.pl: A copy of score.pl but with comments taken out so that the
+further analysis on NMWT, NMWS, RAND and MAN subsets will be
+performed.
+* NMWT only do ids where the target word has not been identified as a
+multiword, i.e. the id does not appear in the mwids file
+* NMWS only using single word substitutes from the gold standard
+* MAN only score using words from the MAN sample, that is words where
+the test sentences were selected manually
+* RAND only score using words from the RAND sample, that is words
+where the test sentences were selected randomly
+
+NB run scoreFA.pl from the directory where you have stored the files
+mwids and MRsamples
+
+----------------------------------
+Changes to scorer from trial release (8 Jan 2007)
+
+any hyphens changed to spaces to allow conformity between annotators,
+and annotators and systems
+
+"non" + space (or hyphen) is conjoined to the following word
+e.g. non-alcoholic or non alcoholic -> nonalcoholic
+
+American -> British spelling mapping for some substitutes in the gold
+standard
+
+added fix to ensure "pn" (proper name) items are not used for scoring
+
+fixed oot measure to enforce that a maximum of 10 items are used. If
+there are more in the system file then the extra are discarded
+
+Diana McCarthy 11/4/07

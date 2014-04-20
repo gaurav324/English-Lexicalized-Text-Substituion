@@ -1,0 +1,18 @@
+Contents of the task 10 dry run release:
+
+readme: this readme file
+
+task10documentation.pdf:  documentation on formats and scoring
+
+lexsub_trial.xml:           input data for dry run
+lexsub.dtd                dtd for input data
+
+score.pl:                perl scoring script
+
+gold.trial:                 gold standard for best and oot evaluation
+mwgold.trial:               gold standard for mw
+BL.out:                   baseline system file for best measures
+BLoutof10.out:            baseline system file for oot measures
+
+dummyMW.out:              dummy system for testing mw measures (not a proper baseline)
+

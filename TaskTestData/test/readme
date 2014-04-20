@@ -1,0 +1,42 @@
+
+This release contains 
+i) the input lexsub_test.xml file 
+ii) an updated version of the lexsub.dtd 
+iii) this readme.
+
+For information on format and scoring, please refer to the task
+documentation delivered with the trial run data and available from
+http://nlp.cs.swarthmore.edu/semeval/tasks/task10/task10documentation.pdf.
+Section 2 of that document has information on format of the test data
+(subsection 2.1) and system answer files (subsection 2.2.2, 2.2.3 and 2.2.4)
+and section 4 has details on how the systems will be scored.
+
+Please note that the scorer is being amended to:- 
+
+i) only use the first ten substitutes in the "oot" answer file. This
+restriction was overlooked in the trial run version which relied on
+systems enforcing the limit of 10 substitutes.
+
+ii) provide "best" and "oot" scores for a) all responses (as in trial run)
+and b) for items where a multiword was NOT detected. As with the trial
+run, an item is considered as a multiword if at least two annotators
+identified the target as "an integral part of a phrase" and the
+lemmatised phrases were the same.
+
+Your results need to be uploaded in a single tarball. Please use tar
+and gzip, or zip to create the tarball. Your tarball should contain up
+to 3 files with extensions .best .oot .mw respectively. These will
+denote which scoring is to be conducted on the file (see
+task10documentation.pdf) and should conform to the formats specified
+in the respective subsections 2.2.2, 2.2.3 and 2.2.4 of that
+document. You can enter your system for any subset of the best, oot
+and mw evaluations in which case just supply the relevant subset of
+files. If you wish to submit more than one system please contact us at
+lexsub@sussex.ac.uk (in accordance with the SEMEVAL rules for
+participants
+http://nlp.cs.swarthmore.edu/semeval/participants.shtml#rules) and use
+file extensions .best2 .oot2 .mw2 for your second system.
+
+thank you for your interest in this task, and good luck!
+
+Diana McCarthy and Roberto Navigli
