@@ -31,7 +31,7 @@ def clean(word):
     xword = word
     if xword.endswith("."):
         xword = word[:-1]
-    if (xword.strip() == "" or len(xword) < 3):
+    if (xword.strip() == "" or len(xword) < 2):
         __cleaned__[word] = None
         return None
 
@@ -57,11 +57,11 @@ def update_co_occur(sentence):
         current_word = sentence[i].split("\t")
         
         # Clean the current word. If it is not clean, ignore this and proceed.
-        cleaned = clean(current_word[0])
+        cleaned = clean(current_word[1])
         if not cleaned:
             continue
         else:
-            current_word[0] = cleaned.string
+            current_word[1] = cleaned.string
 
         # Check the Pos Tag is present in the list of allowed pos_tags.
         try:
@@ -69,8 +69,10 @@ def update_co_occur(sentence):
                 continue
         except IndexError, ex:
             print "Error-Location1: ", current_word
-
-	current_word[0] = current_word[1] + '_' + current_word[2][0]
+	
+    	#if current_word[1].endswith("."):
+    	#    current_word[1] = current_word[1][:-1]	
+	current_word[1] = current_word[1] + '_' + current_word[2][0]
 
         # Window size is fixed to be 2. This signifies that find next two words, which have their
         # POS tags in the allowed list. If EOS comes first, then don't proceed further.
@@ -80,33 +82,37 @@ def update_co_occur(sentence):
                 break
             else:
                 next_word = sentence[i + j + 1]
+		
                 if next_word.strip().startswith("<text") or next_word.strip().startswith("</text"):
                     continue
                 next_word = next_word.split("\t")
 
                 # Clean the next word. If next word is dirty enough, then simply ignore and continue.
-                cleaned = clean(next_word[0])
+                cleaned = clean(next_word[1])
                 if not cleaned:
                     continue
                 else:
-                    next_word[0] = cleaned.string
+                    next_word[1] = cleaned.string
 
                 try:
                     if next_word[2] not in allowed_pos:
                         continue
                     else:
                         # Update count, telling how many words in the window have been included.
-			next_word[0] = next_word[1] + '_' + next_word[2][0]
+			
+        		#if next_word[1].endswith("."):
+            		#    next_word[1] = next_word[1][:-1]
+			next_word[1] = next_word[1] + '_' + next_word[2][0]
                         window_t += 1
                         
                         # Update co-occurance matrix.
-                        if current_word[0] in co_occur:
-                            if next_word[0] in co_occur[current_word[0]]:
-                                co_occur[current_word[0]][next_word[0]] += 1
+                        if current_word[1] in co_occur:
+                            if next_word[1] in co_occur[current_word[1]]:
+                                co_occur[current_word[1]][next_word[1]] += 1
                             else:
-                                co_occur[current_word[0]] = {next_word[0] : 1}
+                                co_occur[current_word[1]][next_word[1]] = 1
                         else:
-                            co_occur[current_word[0]] = {next_word[0] : 1}
+                            co_occur[current_word[1]] = {next_word[1] : 1}
                 except IndexError, ex:
                     print "Error-Location2: ", ex
 
