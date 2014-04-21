@@ -113,6 +113,8 @@ def update_co_occur(sentence):
                                 co_occur[current_word[1]][next_word[1]] = 1
                         else:
                             co_occur[current_word[1]] = {next_word[1] : 1}
+			    if ((len(co_occur) % 10000) == 0):
+			        print len(co_occur) 
                 except IndexError, ex:
                     print "Error-Location2: ", ex
 
@@ -160,10 +162,11 @@ for file in files:
             else:
                 if line.strip() != "":
                     sentence.append(line.strip())
-    if (count % 20 == 0):
-	dump(count)
-if(count % 20 !=0):
     dump(count)
+#    if (count % 20 == 0):
+#	dump(count)
+#if(count % 20 !=0):
+#    dump(count)
 
 # End of File.
 ##############################################################
