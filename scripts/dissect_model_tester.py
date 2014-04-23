@@ -107,7 +107,7 @@ def get_imp_words(tagged_sentence):
 ###############################################################################
 # Replacement Helpers.
 
-def find_replacements_helper(imp_words, word, index, lwindow, rwindow, add, enable_synset_avg):
+def find_replacements_helper(imp_words, word, index, lwindow, rwindow, add, enable_synset_avg, no_rerank):
     """
     This function actually runs the model and find replacements for the word.
 
@@ -308,9 +308,9 @@ def get_options():
     parser.add_option("--enable_synset_avg", action="store_true", dest="enable_synset_avg",
                       help="If we want to improve results by avging over synsets.")
     parser.add_option("--no_rerank", dest="no_rerank",
-                      help="Instead of getting all the similar words and re-ranking 
-                            them, try creating a vector and find similar words to 
-                            that."
+                      help="Instead of getting all the similar words and re-ranking \
+                            them, try creating a vector and find similar words to \
+                            that.")
     
     opts, args = parser.parse_args()
     
