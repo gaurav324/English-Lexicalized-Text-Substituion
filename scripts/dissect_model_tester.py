@@ -332,13 +332,13 @@ if __name__ == "__main__":
     else:
         core_space = io_utils.load(opts.pkl_file, MySpace)
 
-        if ppmi:
+        if opts.ppmi:
             core_space = core_space.apply(PpmiWeighting())
     
-        if top_features:
+        if opts.top_features:
             core_space = core_space.apply(TopFeatureSelection(int(top_features)))
     
-        if svd:
+        if opts.svd:
             core_space = core_space.apply(Svd(int(svd)))
         
         final_model = core_space
