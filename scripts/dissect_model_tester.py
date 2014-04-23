@@ -368,7 +368,10 @@ if __name__ == "__main__":
                 
                 #print sentence, word, index
                 word = str(el.items()[0][1])
-                word = word[:-2] + "_" + word[-1]
+                if word[:-2][-2] == ".":
+                    word = word[:-4] + "_" + word[-1]
+                else:
+                    word = word[:-2] + "_" + word[-1]
                 if word[-1] == "a":
                     word = word[:-1] + "j"
                 word = word.lower()
