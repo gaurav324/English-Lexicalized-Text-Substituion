@@ -116,7 +116,6 @@ def find_replacements_helper(imp_words, word, index, lwindow, rwindow, add, enab
     right = index + rwindow if index + rwindow <= len(imp_words) else len(imp_words)
     
     context_words = imp_words[left:index] + imp_words[index + 1:right]
-    #print context_words, word
     # Gather all the context words in one vector.
     base_unison = None
     for x in context_words:
@@ -202,19 +201,24 @@ def find_replacements_helper(imp_words, word, index, lwindow, rwindow, add, enab
                 else:
                     results[replacement] = 0.0
     #print results
-
+    
+    #print "###########################"
+    #print context_words, word
+    #print map(lambda x: x[0][:-2], sorted(results.iteritems(), key=operator.itemgetter(1), reverse=True)[:10])
+    #print "###########################"
     return (word, map(lambda x: x[0][:-2], sorted(results.iteritems(), key=operator.itemgetter(1), reverse=True)[:10]))
 
-def find_replacements(sentence, lwindow, rwindow, add=False, enable_synset_avg=False):
+def find_replacements(sentence, orig_word, lwindow, rwindow, add=False, enable_synset_avg=False):
     """
     This function would be used to find replacements for the word present
     inside the sentence.
 
-    @sentence: Actual sentence in which word is present.
-    @lwindow : Number of context words in the left of the replacement.
-    @rwindow : Number of context words in the right of the replacement.
-    @add     : Whether we are going to add the vectors. 
-               Otherwise default to multiply.
+    @sentence  : Actual sentence in which word is present.
+    @orig_word : Word whose replacement is to be found
+    @lwindow   : Number of context words in the left of the replacement.
+    @rwindow   : Number of context words in the right of the replacement.
+    @add       : Whether we are going to add the vectors. 
+                 Otherwise default to multiply.
 
     """
     # Remove the START and END temporarily and tag the data.
@@ -227,9 +231,9 @@ def find_replacements(sentence, lwindow, rwindow, add=False, enable_synset_avg=F
     #print sentence, tagged_sentence
 
     wnl = WordNetLemmatizer()
-    word_postag = get_wordnet_pos(tagged_sentence[word_index][1])[0]
-    if word_postag:
-        word = wnl.lemmatize(word, pos=word_postag)
+    #word_postag = get_wordnet_pos(tagged_sentence[word_index][1])[0]
+    #if word_postag:
+    #    word = wnl.lemmatize(word, pos=word_postag)
     tagged_sentence[word_index] = ["_START_" + word + "_END_", tagged_sentence[word_index][1]]
     
     # Remove all the words, whose tags are not important and also
@@ -242,9 +246,8 @@ def find_replacements(sentence, lwindow, rwindow, add=False, enable_synset_avg=F
     for i, x in enumerate(imp_words):
         if x[0].startswith("_START_"):
             index = i
-            x[0] = x[0][7:x[0].index("_END_")]
-            final_list.append("_START_" + x[0].lower() + "_" + x[1][0].lower() + "_END_")
-            word = word.lower() + "_" + x[1][0].lower()
+            final_list.append("_START_" + orig_word + "_END_")
+            word = orig_word
         else:
             # Lemmatize all the words.
             word_postag = get_wordnet_pos(x[1])[0]
@@ -282,7 +285,8 @@ def get_options():
                       help="Save model to a pkl file, which can be re-used.")
     parser.add_option("--pkl_file", dest="pkl_file",
                       help="Location from where pkl file to read. Takes priority\
-                           over other options.")
+                           over other options. Comma Semma separated list can \
+                           also be provided.")
 
     # Options related to testing.
     parser.add_option("-x", "--xml_input", dest="xml_input",
@@ -317,7 +321,19 @@ if __name__ == "__main__":
         train_core(opts.rows_file, opts.cols_file, opts.sm_file, opts.ppmi,
               opts.top_features, opts.svd, opts.save_location)
     else:
-        final_model = io_utils.load(opts.pkl_file, MySpace)
+        core_space = io_utils.load(opts.pkl_file, MySpace)
+
+        if ppmi:
+            core_space = core_space.apply(PpmiWeighting())
+    
+        if top_features:
+            core_space = core_space.apply(TopFeatureSelection(int(top_features)))
+    
+        if svd:
+            core_space = core_space.apply(Svd(int(svd)))
+        
+        final_model = core_space
+
 
     # Load and test the XMl input file.
     if not opts.xml_input:
@@ -342,11 +358,16 @@ if __name__ == "__main__":
                 #sentence = sentence[:sentence.index('_START_')] + word + sentence[sentence.index('_END_') + 5:]
                 
                 #print sentence, word, index
-                result = find_replacements(sentence, opts.lwindow, opts.rwindow, opts.add, opts.enable_synset_avg)
+                word = str(el.items()[0][1])
+                word = word[:-2] + "_" + word[-1]
+                if word[-1] == "a":
+                    word = word[:-1] + "j"
+                word = word.lower()
+                result = find_replacements(sentence, word, opts.lwindow, opts.rwindow, opts.add, opts.enable_synset_avg)
                 values = ";".join(result[1])
                 #print sentence, result
                 #sys.exit(1)
-                f.write(str(result[0].replace("_", ".")) + " " + str(ch.items()[0][1]) + " ::: " + values)
+                f.write(str(el.items()[0][1]) + " " + str(ch.items()[0][1]) + " ::: " + values)
                 f.write("\n")
     f.close()
     print "Output file written."
