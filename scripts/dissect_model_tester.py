@@ -137,13 +137,13 @@ def find_replacements_helper(imp_words, word, index, lwindow, rwindow, add, enab
     else:
         context_word_vector = base_unison.multiply(final_model.get_row(word))
 
+    results = {}
+    cos_sim = CosSimilarity()
+
     if no_rerank:
         results = final_model.get_xneighbours(context_word_vector, 10, cos_sim)
         return (word, map(lambda x: x[0][:-2], results))
    
-    results = {}
-    cos_sim = CosSimilarity()
-
     for replacement, xx in final_model.get_neighbours(word, 75, cos_sim):
             # Ignore itself as a replacement.
             if replacement in context_words:
@@ -307,7 +307,7 @@ def get_options():
                       help="File name where output has to be written.")
     parser.add_option("--enable_synset_avg", action="store_true", dest="enable_synset_avg",
                       help="If we want to improve results by avging over synsets.")
-    parser.add_option("--no_rerank", dest="no_rerank",
+    parser.add_option("--no_rerank", action="store_true", dest="no_rerank",
                       help="Instead of getting all the similar words and re-ranking \
                             them, try creating a vector and find similar words to \
                             that.")
