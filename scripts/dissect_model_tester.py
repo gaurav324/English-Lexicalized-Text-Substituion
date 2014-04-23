@@ -136,9 +136,14 @@ def find_replacements_helper(imp_words, word, index, lwindow, rwindow, add, enab
         context_word_vector = base_unison + final_model.get_row(word) 
     else:
         context_word_vector = base_unison.multiply(final_model.get_row(word))
+
+    if no_rerank:
+        results = final_model.get_xneighbours(context_word_vector, 10, cos_sim)
+        return (word, map(lambda x: x[0][:-2], results))
    
     results = {}
     cos_sim = CosSimilarity()
+
     for replacement, xx in final_model.get_neighbours(word, 75, cos_sim):
             # Ignore itself as a replacement.
             if replacement in context_words:
@@ -208,7 +213,7 @@ def find_replacements_helper(imp_words, word, index, lwindow, rwindow, add, enab
     #print "###########################"
     return (word, map(lambda x: x[0][:-2], sorted(results.iteritems(), key=operator.itemgetter(1), reverse=True)[:10]))
 
-def find_replacements(sentence, orig_word, lwindow, rwindow, add=False, enable_synset_avg=False):
+def find_replacements(sentence, orig_word, lwindow, rwindow, add=False, enable_synset_avg=False, no_rerank=False):
     """
     This function would be used to find replacements for the word present
     inside the sentence.
@@ -258,7 +263,7 @@ def find_replacements(sentence, orig_word, lwindow, rwindow, add=False, enable_s
 
     #print final_list
     try:
-        return find_replacements_helper(final_list, word, index, int(lwindow), int(rwindow) + 1, add, enable_synset_avg)
+        return find_replacements_helper(final_list, word, index, int(lwindow), int(rwindow) + 1, add, enable_synset_avg, no_rerank)
     except Exception, ex:
         print ex
         return "NONE"
@@ -301,7 +306,11 @@ def get_options():
     parser.add_option("--output_to", dest="output_file",
                       help="File name where output has to be written.")
     parser.add_option("--enable_synset_avg", action="store_true", dest="enable_synset_avg",
-                       help="If we want to improve results by avging over synsets.")
+                      help="If we want to improve results by avging over synsets.")
+    parser.add_option("--no_rerank", dest="no_rerank",
+                      help="Instead of getting all the similar words and re-ranking 
+                            them, try creating a vector and find similar words to 
+                            that."
     
     opts, args = parser.parse_args()
     
@@ -363,7 +372,7 @@ if __name__ == "__main__":
                 if word[-1] == "a":
                     word = word[:-1] + "j"
                 word = word.lower()
-                result = find_replacements(sentence, word, opts.lwindow, opts.rwindow, opts.add, opts.enable_synset_avg)
+                result = find_replacements(sentence, word, opts.lwindow, opts.rwindow, opts.add, opts.enable_synset_avg, opts.no_rerank)
                 values = ";".join(result[1])
                 #print sentence, result
                 #sys.exit(1)
