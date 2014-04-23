@@ -336,10 +336,10 @@ if __name__ == "__main__":
             core_space = core_space.apply(PpmiWeighting())
     
         if opts.top_features:
-            core_space = core_space.apply(TopFeatureSelection(int(top_features)))
+            core_space = core_space.apply(TopFeatureSelection(int(opts.top_features)))
     
         if opts.svd:
-            core_space = core_space.apply(Svd(int(svd)))
+            core_space = core_space.apply(Svd(int(opts.svd)))
         
         final_model = core_space
 
