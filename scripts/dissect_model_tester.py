@@ -85,15 +85,15 @@ def get_wordnet_pos(treebank_tag):
 
     """
     if treebank_tag.startswith('J'):
-        return wn.ADJ
+        return [wn.ADJ, wn.ADJ_SAT]
     elif treebank_tag.startswith('V'):
-        return wn.VERB
+        return [wn.VERB]
     elif treebank_tag.startswith('N'):
-        return wn.NOUN
+        return [wn.NOUN]
     elif treebank_tag.startswith('R'):
-        return wn.ADV
+        return [wn.ADV]
     else:
-        return None
+        return [None]
     
 def get_imp_words(tagged_sentence):
     """
@@ -107,7 +107,7 @@ def get_imp_words(tagged_sentence):
 ###############################################################################
 # Replacement Helpers.
 
-def find_replacements_helper(imp_words, word, index, lwindow, rwindow, add):
+def find_replacements_helper(imp_words, word, index, lwindow, rwindow, add, enable_synset_avg):
     """
     This function actually runs the model and find replacements for the word.
 
@@ -159,10 +159,53 @@ def find_replacements_helper(imp_words, word, index, lwindow, rwindow, add):
                 context_repl_vector = base_unison.multiply(replacement_vector)
             
             results[replacement] = cos_sim.get_sim(context_word_vector, context_repl_vector)
+            wnl = WordNetLemmatizer()
+            if enable_synset_avg:
+                synsets = wn.synsets(replacement[:-2])
+                results_map = {}
+                for synset in synsets:
+                    postag_list = get_wordnet_pos(replacement[-1].upper())
+                    if synset.pos in postag_list:
+                        synset_syns = synset.lemma_names
+                        avg = 0
+                        count = 0
+                        for syn in synset_syns:
+                            #print "Before lemmatizing ", syn
+                            #syn = wnl.lemmatize(syn, pos=postag_list[0])
+                            #print "After lemmatizing ", syn, " with postag ", postag_list[0]
+
+                            #print syn, replacement, "\n"
+                            if len(syn.split(" ")) > 1:
+                                continue
+                            if syn == replacement[:-2]:
+                                continue
+                            try:
+                                replacement = str(syn) + "_" + replacement[-1]
+                                replacement_vector = final_model.get_row(replacement)
+                                if add:
+                                    context_repl_vector = base_unison + replacement_vector
+                                else:
+                                    context_repl_vector = base_unison.multiply(replacement_vector)
+
+                                simil = cos_sim.get_sim(context_word_vector, context_repl_vector)
+                                avg += simil
+                                count += 1
+                            except:
+                                pass
+                        if count > 0:
+                            avg /= count
+                            results_map[synset] = avg
+                #print replacement, results_map
+                #print results
+                if len(results_map.values()) > 0:
+                    results[replacement] = max(results_map.values())
+                else:
+                    results[replacement] = 0.0
+    #print results
 
     return (word, map(lambda x: x[0][:-2], sorted(results.iteritems(), key=operator.itemgetter(1), reverse=True)[:10]))
 
-def find_replacements(sentence, lwindow, rwindow, add=False):
+def find_replacements(sentence, lwindow, rwindow, add=False, enable_synset_avg=False):
     """
     This function would be used to find replacements for the word present
     inside the sentence.
@@ -184,7 +227,7 @@ def find_replacements(sentence, lwindow, rwindow, add=False):
     #print sentence, tagged_sentence
 
     wnl = WordNetLemmatizer()
-    word_postag = get_wordnet_pos(tagged_sentence[word_index][1])
+    word_postag = get_wordnet_pos(tagged_sentence[word_index][1])[0]
     if word_postag:
         word = wnl.lemmatize(word, pos=word_postag)
     tagged_sentence[word_index] = ["_START_" + word + "_END_", tagged_sentence[word_index][1]]
@@ -204,7 +247,7 @@ def find_replacements(sentence, lwindow, rwindow, add=False):
             word = word.lower() + "_" + x[1][0].lower()
         else:
             # Lemmatize all the words.
-            word_postag = get_wordnet_pos(x[1])
+            word_postag = get_wordnet_pos(x[1])[0]
             temp = x[0]
             if word_postag:
                 temp = wnl.lemmatize(x[0], pos=word_postag)
@@ -212,8 +255,9 @@ def find_replacements(sentence, lwindow, rwindow, add=False):
 
     #print final_list
     try:
-        return find_replacements_helper(final_list, word, index, int(lwindow), int(rwindow) + 1, add)
-    except Exception:
+        return find_replacements_helper(final_list, word, index, int(lwindow), int(rwindow) + 1, add, enable_synset_avg)
+    except Exception, ex:
+        print ex
         return "NONE"
 
 ###############################################################################
@@ -252,6 +296,8 @@ def get_options():
                       help="Number of words to the right of the words to be replaced.")
     parser.add_option("--output_to", dest="output_file",
                       help="File name where output has to be written.")
+    parser.add_option("--enable_synset_avg", action="store_true", dest="enable_synset_avg",
+                       help="If we want to improve results by avging over synsets.")
     
     opts, args = parser.parse_args()
     
@@ -296,9 +342,11 @@ if __name__ == "__main__":
                 #sentence = sentence[:sentence.index('_START_')] + word + sentence[sentence.index('_END_') + 5:]
                 
                 #print sentence, word, index
-                result = find_replacements(sentence, opts.lwindow, opts.rwindow, opts.add)
+                result = find_replacements(sentence, opts.lwindow, opts.rwindow, opts.add, opts.enable_synset_avg)
                 values = ";".join(result[1])
-                f.write(str(result[0].replace("_", ".")) + " " + str(ch.items()[0][1]) + " :: " + values)
+                #print sentence, result
+                #sys.exit(1)
+                f.write(str(result[0].replace("_", ".")) + " " + str(ch.items()[0][1]) + " ::: " + values)
                 f.write("\n")
     f.close()
     print "Output file written."
