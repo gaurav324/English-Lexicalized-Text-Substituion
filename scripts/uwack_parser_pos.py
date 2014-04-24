@@ -16,7 +16,7 @@ allowed_pos = ['jj','jjr','jjs','jjt','nn','nns','np','nps','nr','nrs','prp','pp
 co_occur = {}
 
 # Regex to match only words having letters. Filter out numbers, crappy urls etc.
-regex = re.compile(r'^[a-zA-Z]+$')
+regex = re.compile(r'^[a-zA-Z-]+$')
 
 english_dict = enchant.Dict("en_US")
 ##############################################################
@@ -28,7 +28,7 @@ def clean(word):
     if word in __cleaned__:
         return __cleaned__[word]
 
-    xword = word
+    xword = word.strip()
     if xword.endswith("."):
         xword = word[:-1]
     if (xword.strip() == "" or len(xword) < 2):
@@ -37,7 +37,7 @@ def clean(word):
 
     try:
         xword = unicode(xword, "utf-8")
-        if (english_dict.check(xword)):
+        if (english_dict.check(xword) or "-" in xword):
             result = regex.match(xword)
             __cleaned__[word] = result
             return result
