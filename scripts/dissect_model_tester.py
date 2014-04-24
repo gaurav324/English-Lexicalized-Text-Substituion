@@ -77,7 +77,6 @@ def train_core(rows_file, cols_file, sm_file, ppmi=False, top_features=None, svd
 
 ###############################################################################
 # Helper functions.
-
 def get_wordnet_pos(treebank_tag):
     """
     This function would return corresponding wordnet POS tag for 
@@ -115,51 +114,58 @@ def find_replacements_helper(imp_words, word, index, lwindow, rwindow,
     """
     
     # Fetch left context words.
+    #print imp_words, word, index, lwindow, rwindow, add, enable_synset_avg, no_rerank, left_right_add
+    
     temp = index
+    count = 0
     left_context_words = []
-    while temp != 0:
-        if index - temp == lwindow:
-            break
+    while temp != 0 and count != lwindow:
         temp -= 1
+        try:
+            final_model.get_row(imp_words[temp])
+        except KeyError, ex:
+            print "Warning: " + imp_words[temp] + " is not in entire corpus" 
+            continue
+        count += 1
         left_context_words.append(imp_words[temp])
 
     # Fetch right context words.
     temp = index
+    count = 0
     right_context_words = []
-    while temp != len(imp_words) - 1:
-        if index + rwindow == temp:
-            break
+    while temp != len(imp_words) - 1 and count != rwindow:
         temp += 1
+        try:
+            final_model.get_row(imp_words[temp])
+        except KeyError, ex:
+            print "Warning: " + imp_words[temp] + " is not in entire corpus" 
+            continue
+    
+        count += 1
         right_context_words.append(imp_words[temp])
+    
+    #print left_context_words, right_context_words
 
     # Gather all the context words in one vector.
     left_unison = None
     for x in left_context_words:
-        try:
-            if left_unison is None:
-                left_unison = deepcopy(final_model.get_row(x))
+        if left_unison is None:
+            left_unison = deepcopy(final_model.get_row(x))
+        else:
+            if add:
+                left_unison += final_model.get_row(x)
             else:
-                if add:
-                    left_unison += final_model.get_row(x)
-                else:
-                    left_unison = left_unison.multiply(final_model.get_row(x))
-        except KeyError, ex:
-            print "Warning: " + x + " is not in entire corpus" 
-            pass
+                left_unison = left_unison.multiply(final_model.get_row(x))
     
     right_unison = None
     for x in right_context_words:
-        try:
-            if right_unison is None:
-                right_unison = deepcopy(final_model.get_row(x))
+        if right_unison is None:
+            right_unison = deepcopy(final_model.get_row(x))
+        else:
+            if add:
+                right_unison += final_model.get_row(x)
             else:
-                if add:
-                    right_unison += final_model.get_row(x)
-                else:
-                    right_unison = right_unison.multiply(final_model.get_row(x))
-        except KeyError, ex:
-            print "Warning: " + x + " is not in entire corpus" 
-            pass
+                right_unison = right_unison.multiply(final_model.get_row(x))
     
     base_unison = None
     if left_unison is None:
@@ -170,14 +176,16 @@ def find_replacements_helper(imp_words, word, index, lwindow, rwindow,
         if left_right_add or add:
             base_unison = left_unison + right_unison
         else:
-            base_unison = left_unison.multiply(right_unison)
+            for x in right_context_words:
+                left_unison = left_unison.multiply(final_model.get_row(x))
 
+            base_unison = left_unison
     
     # Create a vector having context words and word to replace.
     if add:
         context_word_vector = base_unison + final_model.get_row(word) 
     else:
-        context_word_vector = base_unison.multiply(final_model.get_row(word))
+        context_word_vector = base_unison.multiply(final_model.get_row(word)) if base_unison is not None else final_model.get_row(word)
 
     results = {}
     cos_sim = CosSimilarity()
@@ -192,12 +200,9 @@ def find_replacements_helper(imp_words, word, index, lwindow, rwindow,
     #############################################################################
     # Get the list of the similar words to the given vector.
     #############################################################################
-    for replacement, xx in final_model.get_neighbours(word, 75, cos_sim):
-            # Ignore itself as a replacement.
-            if replacement in context_words:
-                continue
+    for replacement, xx in final_model.get_neighbours(word, 300, cos_sim):
             # Get rid of cases like "fix" and "fixing".
-            if word in replacement or replacement in word:
+            if word[:-2] in replacement[:-2] or replacement[:-2] in word[:-2]:
                 continue
             # Replace only with the same POS tag.
             if replacement[-1] != word[-1]:
@@ -286,15 +291,18 @@ def find_replacements(sentence, orig_word, lwindow, rwindow, add=False,
 
     # Tag the sentence and then bring the START and END back.
     tagged_sentence = nltk.pos_tag(nltk.word_tokenize(t_sentence))
-    #print sentence, tagged_sentence
+    #print str(t_sentence), str(tagged_sentence)
 
     wnl = WordNetLemmatizer()
-    tagged_sentence[word_index] = ["_START_" + word + "_END_", tagged_sentence[word_index][1]]
+    tagged_sentence[word_index] = ["_START_" + word + "_END_", "NN"]
     
     # Remove all the words, whose tags are not important and also
     # get rid of smaller words.
+    #print "********************************"
+    #print tagged_sentence
     imp_words = filter(lambda x: len(x[0]) > 2, get_imp_words(tagged_sentence))
     #print imp_words
+    #print "################################"
 
     final_list = []
     for i, x in enumerate(imp_words):
@@ -313,7 +321,7 @@ def find_replacements(sentence, orig_word, lwindow, rwindow, add=False,
     #print final_list
     try:
         return find_replacements_helper(final_list, word, index, int(lwindow),
-                                        int(rwindow) + 1, add, enable_synset_avg, 
+                                        int(rwindow), add, enable_synset_avg, 
                                         no_rerank, left_right_add)
     except Exception, ex:
         print ex
