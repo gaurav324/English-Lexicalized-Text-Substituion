@@ -16,7 +16,7 @@ allowed_pos = ['jj','jjr','jjs','jjt','nn','nns','np','nps','nr','nrs','prp','pp
 co_occur = {}
 
 # Regex to match only words having letters. Filter out numbers, crappy urls etc.
-regex = re.compile(r'^[a-zA-Z]+$')
+regex = re.compile(r'^[a-zA-Z-]+$')
 
 english_dict = enchant.Dict("en_US")
 ##############################################################
@@ -28,7 +28,7 @@ def clean(word):
     if word in __cleaned__:
         return __cleaned__[word]
 
-    xword = word
+    xword = word.strip()
     if xword.endswith("."):
         xword = word[:-1]
     if (xword.strip() == "" or len(xword) < 3):
@@ -37,7 +37,7 @@ def clean(word):
 
     try:
         xword = unicode(xword, "utf-8")
-        if (english_dict.check(xword)):
+        if (english_dict.check(xword) or "-" in xword):
             result = regex.match(xword)
             __cleaned__[word] = result
             return result
@@ -57,11 +57,11 @@ def update_co_occur(sentence):
         current_word = sentence[i].split(" ")
         
         # Clean the current word. If it is not clean, ignore this and proceed.
-        cleaned = clean(current_word[0])
+        cleaned = clean(current_word[1])
         if not cleaned:
             continue
         else:
-            current_word[0] = cleaned.string
+            current_word[1] = cleaned.string
 
         # Check the Pos Tag is present in the list of allowed pos_tags.
         try:
@@ -70,7 +70,7 @@ def update_co_occur(sentence):
         except IndexError, ex:
             print "Error-Location1: ", current_word
 
-        current_word[0] = current_word[1]+'_'+current_word[2][:1]
+        current_word[1] = current_word[1]+'_'+current_word[2][:1]
 
         # Window size is fixed to be 2. This signifies that find next two words, which have their
         # POS tags in the allowed list. If EOS comes first, then don't proceed further.
@@ -85,29 +85,29 @@ def update_co_occur(sentence):
                 next_word = next_word.split(" ")
 
                 # Clean the next word. If next word is dirty enough, then simply ignore and continue.
-                cleaned = clean(next_word[0])
+                cleaned = clean(next_word[1])
                 if not cleaned:
                     continue
                 else:
-                    next_word[0] = cleaned.string
+                    next_word[1] = cleaned.string
 
                 try:
                     if next_word[2] not in allowed_pos:
                         continue
                     else:
                         # Update count, telling how many words in the window have been included.
-                        next_word[0] = next_word[1]+'_'+next_word[2][:1]
+                        next_word[1] = next_word[1]+'_'+next_word[2][:1]
 
                         window_t += 1
                         
                         # Update co-occurance matrix.
-                        if current_word[0] in co_occur:
-                            if next_word[0] in co_occur[current_word[0]]:
-                                co_occur[current_word[0]][next_word[0]] += 1
+                        if current_word[1] in co_occur:
+                            if next_word[1] in co_occur[current_word[1]]:
+                                co_occur[current_word[1]][next_word[1]] += 1
                             else:
-                                co_occur[current_word[0]][next_word[0]] = 1
+                                co_occur[current_word[1]][next_word[1]] = 1
                         else:
-                            co_occur[current_word[0]] = {next_word[0] : 1}
+                            co_occur[current_word[1]] = {next_word[1] : 1}
                 except IndexError, ex:
                     print "Error-Location2: ", ex
 
@@ -154,10 +154,10 @@ for file in files:
             else:
                 if line.strip() != "":
                     sentence.append(line.strip())
-    if (count % 5 == 0):
+    if (count % 50 == 0):
         dump(count)
 
-if(count % 5 != 0):
+if(count % 50 != 0):
     dump(count)
 # End of File.
 ##############################################################
