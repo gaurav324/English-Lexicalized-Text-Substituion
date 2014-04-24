@@ -107,29 +107,71 @@ def get_imp_words(tagged_sentence):
 ###############################################################################
 # Replacement Helpers.
 
-def find_replacements_helper(imp_words, word, index, lwindow, rwindow, add, enable_synset_avg, no_rerank):
+def find_replacements_helper(imp_words, word, index, lwindow, rwindow, 
+                             add, enable_synset_avg, no_rerank, left_right_add):
     """
     This function actually runs the model and find replacements for the word.
 
     """
-    left = index - lwindow if index - lwindow >= 0 else 0
-    right = index + rwindow if index + rwindow <= len(imp_words) else len(imp_words)
     
-    context_words = imp_words[left:index] + imp_words[index + 1:right]
+    # Fetch left context words.
+    temp = index
+    left_context_words = []
+    while temp != 0:
+        if index - temp == lwindow:
+            break
+        temp -= 1
+        left_context_words.append(imp_words[temp])
+
+    # Fetch right context words.
+    temp = index
+    right_context_words = []
+    while temp != len(imp_words) - 1:
+        if index + rwindow == temp:
+            break
+        temp += 1
+        right_context_words.append(imp_words[temp])
+
     # Gather all the context words in one vector.
-    base_unison = None
-    for x in context_words:
+    left_unison = None
+    for x in left_context_words:
         try:
-            if base_unison is None:
-                base_unison = deepcopy(final_model.get_row(x))
+            if left_unison is None:
+                left_unison = deepcopy(final_model.get_row(x))
             else:
                 if add:
-                    base_unison += final_model.get_row(x)
+                    left_unison += final_model.get_row(x)
                 else:
-                    base_unison = base_unison.multiply(final_model.get_row(x))
+                    left_unison = left_unison.multiply(final_model.get_row(x))
         except KeyError, ex:
             print "Warning: " + x + " is not in entire corpus" 
             pass
+    
+    right_unison = None
+    for x in right_context_words:
+        try:
+            if right_unison is None:
+                right_unison = deepcopy(final_model.get_row(x))
+            else:
+                if add:
+                    right_unison += final_model.get_row(x)
+                else:
+                    right_unison = right_unison.multiply(final_model.get_row(x))
+        except KeyError, ex:
+            print "Warning: " + x + " is not in entire corpus" 
+            pass
+    
+    base_unison = None
+    if left_unison is None:
+        base_unison = right_unison
+    elif right_unison is None:
+        base_unison = left_unison
+    else:
+        if left_right_add or add:
+            base_unison = left_unison + right_unison
+        else:
+            base_unison = left_unison.multiply(right_unison)
+
     
     # Create a vector having context words and word to replace.
     if add:
@@ -140,10 +182,16 @@ def find_replacements_helper(imp_words, word, index, lwindow, rwindow, add, enab
     results = {}
     cos_sim = CosSimilarity()
 
+    #############################################################################
+    # If we simply get the nearest neigbours of the actual context word.
+    #############################################################################
     if no_rerank:
         results = final_model.get_xneighbours(context_word_vector, 10, cos_sim)
         return (word, map(lambda x: x[0][:-2], results))
-   
+    
+    #############################################################################
+    # Get the list of the similar words to the given vector.
+    #############################################################################
     for replacement, xx in final_model.get_neighbours(word, 75, cos_sim):
             # Ignore itself as a replacement.
             if replacement in context_words:
@@ -164,6 +212,11 @@ def find_replacements_helper(imp_words, word, index, lwindow, rwindow, add, enab
             
             results[replacement] = cos_sim.get_sim(context_word_vector, context_repl_vector)
             wnl = WordNetLemmatizer()
+
+            #############################################################################
+            # This approach was to take similar words from similarity space and then
+            # find synsets with the highest average replacement.
+            #############################################################################
             if enable_synset_avg:
                 synsets = wn.synsets(replacement[:-2])
                 results_map = {}
@@ -174,11 +227,6 @@ def find_replacements_helper(imp_words, word, index, lwindow, rwindow, add, enab
                         avg = 0
                         count = 0
                         for syn in synset_syns:
-                            #print "Before lemmatizing ", syn
-                            #syn = wnl.lemmatize(syn, pos=postag_list[0])
-                            #print "After lemmatizing ", syn, " with postag ", postag_list[0]
-
-                            #print syn, replacement, "\n"
                             if len(syn.split(" ")) > 1:
                                 continue
                             if syn == replacement[:-2]:
@@ -205,25 +253,30 @@ def find_replacements_helper(imp_words, word, index, lwindow, rwindow, add, enab
                     results[replacement] = max(results_map.values())
                 else:
                     results[replacement] = 0.0
+            #############################################################################
+
     #print results
-    
     #print "###########################"
     #print context_words, word
     #print map(lambda x: x[0][:-2], sorted(results.iteritems(), key=operator.itemgetter(1), reverse=True)[:10])
     #print "###########################"
     return (word, map(lambda x: x[0][:-2], sorted(results.iteritems(), key=operator.itemgetter(1), reverse=True)[:10]))
 
-def find_replacements(sentence, orig_word, lwindow, rwindow, add=False, enable_synset_avg=False, no_rerank=False):
+def find_replacements(sentence, orig_word, lwindow, rwindow, add=False, 
+                      enable_synset_avg=False, no_rerank=False, left_right_add=False):
     """
     This function would be used to find replacements for the word present
     inside the sentence.
 
-    @sentence  : Actual sentence in which word is present.
-    @orig_word : Word whose replacement is to be found
-    @lwindow   : Number of context words in the left of the replacement.
-    @rwindow   : Number of context words in the right of the replacement.
-    @add       : Whether we are going to add the vectors. 
-                 Otherwise default to multiply.
+    @sentence          : Actual sentence in which word is present.
+    @orig_word         : Word whose replacement is to be found
+    @lwindow           : Number of context words in the left of the replacement.
+    @rwindow           : Number of context words in the right of the replacement.
+    @add               : Whether we are going to add the vectors. 
+                         Otherwise default to multiply.
+    @enable_synset_avg : Flag to switch synset avg approach.
+    @no_rerank         : Flag to switch no_reranking approach.
+    @left_right_add    : Multiply vectors in the left and right and add together.
 
     """
     # Remove the START and END temporarily and tag the data.
@@ -236,9 +289,6 @@ def find_replacements(sentence, orig_word, lwindow, rwindow, add=False, enable_s
     #print sentence, tagged_sentence
 
     wnl = WordNetLemmatizer()
-    #word_postag = get_wordnet_pos(tagged_sentence[word_index][1])[0]
-    #if word_postag:
-    #    word = wnl.lemmatize(word, pos=word_postag)
     tagged_sentence[word_index] = ["_START_" + word + "_END_", tagged_sentence[word_index][1]]
     
     # Remove all the words, whose tags are not important and also
@@ -246,7 +296,6 @@ def find_replacements(sentence, orig_word, lwindow, rwindow, add=False, enable_s
     imp_words = filter(lambda x: len(x[0]) > 2, get_imp_words(tagged_sentence))
     #print imp_words
 
-    #sentence = nltk.pos_tag(nltk.word_tokenize(sentence))
     final_list = []
     for i, x in enumerate(imp_words):
         if x[0].startswith("_START_"):
@@ -263,7 +312,9 @@ def find_replacements(sentence, orig_word, lwindow, rwindow, add=False, enable_s
 
     #print final_list
     try:
-        return find_replacements_helper(final_list, word, index, int(lwindow), int(rwindow) + 1, add, enable_synset_avg, no_rerank)
+        return find_replacements_helper(final_list, word, index, int(lwindow),
+                                        int(rwindow) + 1, add, enable_synset_avg, 
+                                        no_rerank, left_right_add)
     except Exception, ex:
         print ex
         return "NONE"
@@ -299,6 +350,9 @@ def get_options():
                             Substituition task.")
     parser.add_option("--add", action="store_true", dest="add",
                       help="If we want to add vectors in context for finding replacements.")
+    parser.add_option("--left_right_add", action="store_true", dest="left_right_add",
+                      help="If we want to multiply left and right components and add them together.\
+                            Only meaningful if only looking at one left and one right word.")
     parser.add_option("--lwindow", dest="lwindow", default=2,
                       help="Number of words to the left of the words to be replaced.")
     parser.add_option("--rwindow", dest="rwindow", default=2,
@@ -317,6 +371,12 @@ def get_options():
     if not opts.pkl_file:
         if not opts.rows_file or not opts.cols_file or not opts.sm_file:
             sys.exit("Please give either pkl file or combination of (row, col and sm file).")
+    
+    if opts.add and opts.left_right_add:
+        sys.exit("Either give add or left_right_add. You cannot have them together.")
+
+    if opts.left_right_add and (opts.lwindow != "1" or opts.rwindow != "1"):
+        sys.exit("Left and right windows should just be one, when adding left and right.")
 
     return (opts, args)
 
@@ -343,7 +403,6 @@ if __name__ == "__main__":
         
         final_model = core_space
 
-
     # Load and test the XMl input file.
     if not opts.xml_input:
         sys.exit("")
@@ -362,12 +421,10 @@ if __name__ == "__main__":
             for ch1 in ch.getchildren():
                 sentence = ch1.text
                 
-                #word     = sentence[sentence.index('_START_') + 7 : sentence.index('_END_')]
-                #index    = nltk.word_tokenize(sentence).index("_START_" + word + "_END_")
-                #sentence = sentence[:sentence.index('_START_')] + word + sentence[sentence.index('_END_') + 5:]
-                
                 #print sentence, word, index
                 word = str(el.items()[0][1])
+                
+                # Some of the words have WORD.a.n type of suffix.
                 if word[:-2][-2] == ".":
                     word = word[:-4] + "_" + word[-1]
                 else:
@@ -375,10 +432,11 @@ if __name__ == "__main__":
                 if word[-1] == "a":
                     word = word[:-1] + "j"
                 word = word.lower()
-                result = find_replacements(sentence, word, opts.lwindow, opts.rwindow, opts.add, opts.enable_synset_avg, opts.no_rerank)
+
+                result = find_replacements(sentence, word, opts.lwindow, opts.rwindow, opts.add, 
+                                           opts.enable_synset_avg, opts.no_rerank, opts.left_right_add)
                 values = ";".join(result[1])
                 #print sentence, result
-                #sys.exit(1)
                 f.write(str(el.items()[0][1]) + " " + str(ch.items()[0][1]) + " ::: " + values)
                 f.write("\n")
     f.close()
