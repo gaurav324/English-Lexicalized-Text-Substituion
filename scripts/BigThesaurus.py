@@ -21,13 +21,25 @@ class BigThesaurus:
 
     def synonyms(self, word):
         word, pos = self.word_pos_split(word)
+
         syns = eval(self._data_[word][0])[pos]
-        return syns["syn"] if "syn" in syns else None
+        return syns["syn"] if "syn" in syns else []
 
     def antonyms(self, word):
         word, pos = self.word_pos_split(word)
 
         ants = eval(self._data_[word][0])[pos]
         return ants["ant"] if "ant" in ants else None
+
+    def replacements(self, word):
+        word, pos = self.word_pos_split(word)
+
+        arr = eval(self._data_[word][0])[pos]
+        syns = arr["syn"] if "syn" in arr else [] 
+        sims = arr["sim"] if "sim" in arr else [] 
+
+        return syns + sims
+       
+ 
 
        

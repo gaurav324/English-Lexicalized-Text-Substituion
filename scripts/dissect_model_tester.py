@@ -42,7 +42,7 @@ final_model = None
 # other words dont add much to the context.
 important_tags = ['NN', 'NNS', 'VB', 'VBP', 'VBN', 'VBG', 'VBD', 'VBZ', 'NNP', 'JJ', 'JJR', 'JJS', 'RB', 'N', 'PRP$', 'PRP']
 
-thesaurus = BigThesaurus()
+big_thesaurus = BigThesaurus()
 ###############################################################################
 
 def train_core(rows_file, cols_file, sm_file, ppmi=False, top_features=None, svd=None, save_location=None):
@@ -110,7 +110,8 @@ def get_imp_words(tagged_sentence):
 # Replacement Helpers.
 
 def find_replacements_helper(imp_words, word, index, lwindow, rwindow, 
-                             add, enable_synset_avg, no_rerank, left_right_add):
+                             add, enable_synset_avg, no_rerank, left_right_add,
+                             thesaurus):
     """
     This function actually runs the model and find replacements for the word.
 
@@ -203,8 +204,15 @@ def find_replacements_helper(imp_words, word, index, lwindow, rwindow,
     #############################################################################
     # Get the list of the similar words to the given vector.
     #############################################################################
-    antonyms = thesaurus.antonyms(word)
-    for replacement, xx in final_model.get_neighbours(word, 75, cos_sim):
+    antonyms = big_thesaurus.antonyms(word)
+    replacements = []
+    if thesaurus > 0.0:
+        synonyms = big_thesaurus.replacements(word)
+        replacements = filter(lambda x: len(x.split(" ")) == 1, map(lambda x: x.lower() + "_" + word[-1], synonyms))
+
+    how_many = int((1 - thesaurus) * len(replacements)) if thesaurus > 0.0 else 75
+    replacements.extend(map(lambda x: x[0], final_model.get_neighbours(word, how_many, cos_sim)))
+    for replacement in replacements:
             # Get rid of cases like "fix" and "fixing".
             if word[:-2] in replacement[:-2] or replacement[:-2] in word[:-2]:
                 continue
@@ -215,7 +223,10 @@ def find_replacements_helper(imp_words, word, index, lwindow, rwindow,
             if antonyms is not None and replacement[:-2] in antonyms:
                 continue
             
-            replacement_vector = final_model.get_row(replacement)
+            try:
+                replacement_vector = final_model.get_row(replacement)
+            except Exception, ex:
+                continue
             
             if add:
                 context_repl_vector = base_unison + replacement_vector
@@ -275,7 +286,8 @@ def find_replacements_helper(imp_words, word, index, lwindow, rwindow,
     return (word, map(lambda x: x[0][:-2], sorted(results.iteritems(), key=operator.itemgetter(1), reverse=True)[:10]))
 
 def find_replacements(sentence, orig_word, lwindow, rwindow, add=False, 
-                      enable_synset_avg=False, no_rerank=False, left_right_add=False):
+                      enable_synset_avg=False, no_rerank=False, left_right_add=False,
+                      thesaurus=0.0):
     """
     This function would be used to find replacements for the word present
     inside the sentence.
@@ -329,7 +341,7 @@ def find_replacements(sentence, orig_word, lwindow, rwindow, add=False,
     try:
         return find_replacements_helper(final_list, word, index, int(lwindow),
                                         int(rwindow), add, enable_synset_avg, 
-                                        no_rerank, left_right_add)
+                                        no_rerank, left_right_add, thesaurus)
     except Exception, ex:
         print ex
         return "NONE"
@@ -380,6 +392,9 @@ def get_options():
                       help="Instead of getting all the similar words and re-ranking \
                             them, try creating a vector and find similar words to \
                             that.")
+    parser.add_option("--thesaurus", dest="thesaurus", default=0,
+                      help="By default, it would be zero. If 0.5, we would extract get \
+                            equal number of words from similarity model and rank them.")
     
     opts, args = parser.parse_args()
     
@@ -449,7 +464,8 @@ if __name__ == "__main__":
                 word = word.lower()
 
                 result = find_replacements(sentence, word, opts.lwindow, opts.rwindow, opts.add, 
-                                           opts.enable_synset_avg, opts.no_rerank, opts.left_right_add)
+                                           opts.enable_synset_avg, opts.no_rerank, opts.left_right_add,
+                                           float(opts.thesaurus))
                 values = ";".join(result[1])
                 #print sentence, result
                 f.write(str(el.items()[0][1]) + " " + str(ch.items()[0][1]) + " ::: " + values)
