@@ -211,7 +211,8 @@ def find_replacements_helper(imp_words, word, index, lwindow, rwindow,
         replacements = filter(lambda x: len(x.split(" ")) == 1, map(lambda x: x.lower() + "_" + word[-1], synonyms))
 
     how_many = int((1 - thesaurus) * len(replacements)) if thesaurus > 0.0 else 75
-    replacements.extend(map(lambda x: x[0], final_model.get_neighbours(word, how_many, cos_sim)))
+    if how_many > 0:
+        replacements.extend(map(lambda x: x[0], final_model.get_neighbours(word, how_many, cos_sim)))
     for replacement in replacements:
             # Get rid of cases like "fix" and "fixing".
             if word[:-2] in replacement[:-2] or replacement[:-2] in word[:-2]:
