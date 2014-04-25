@@ -30,6 +30,7 @@ from nltk.stem      import WordNetLemmatizer
 from nltk.tag       import pos_tag
 from nltk.tokenize  import word_tokenize
 
+from BigThesaurus       import BigThesaurus
 from SpaceSubClassModel import MySpace
 
 ###############################################################################
@@ -40,6 +41,8 @@ final_model = None
 # List of tags, only which we consider are important. Basically, all 
 # other words dont add much to the context.
 important_tags = ['NN', 'NNS', 'VB', 'VBP', 'VBN', 'VBG', 'VBD', 'VBZ', 'NNP', 'JJ', 'JJR', 'JJS', 'RB', 'N', 'PRP$', 'PRP']
+
+thesaurus = BigThesaurus()
 ###############################################################################
 
 def train_core(rows_file, cols_file, sm_file, ppmi=False, top_features=None, svd=None, save_location=None):
@@ -200,12 +203,16 @@ def find_replacements_helper(imp_words, word, index, lwindow, rwindow,
     #############################################################################
     # Get the list of the similar words to the given vector.
     #############################################################################
-    for replacement, xx in final_model.get_neighbours(word, 300, cos_sim):
+    antonyms = thesaurus.antonyms(word)
+    for replacement, xx in final_model.get_neighbours(word, 75, cos_sim):
             # Get rid of cases like "fix" and "fixing".
             if word[:-2] in replacement[:-2] or replacement[:-2] in word[:-2]:
                 continue
             # Replace only with the same POS tag.
             if replacement[-1] != word[-1]:
+                continue
+
+            if antonyms is not None and replacement[:-2] in antonyms:
                 continue
             
             replacement_vector = final_model.get_row(replacement)
