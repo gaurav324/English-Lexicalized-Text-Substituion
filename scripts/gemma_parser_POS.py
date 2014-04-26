@@ -10,13 +10,13 @@ import mmap
 ##############################################################
 # Globals.
 
-allowed_pos = ['jj','jjr','jjs','jjt','nn','nns','np','nps','nr','nrs','prp','pp','rb','vb','vbd','vbg','vbn','vbz', 'vbp', 'nnp', 'n', 'prp$', 'prp', 'wdt', 'jj$','jjr$','jjs$','jjt$','nn$','np$','nps$','pp$','rb$','vb$','vbd$','vbn$','vbz$','nnp$']
+allowed_pos = ['jj','jjr','jjs','jjt','nn','nns','np','nps','nr','nrs','rb','vb','vbd','vbg','vbn','vbz', 'vbp', 'nnp', 'n', 'jj$','jjr$','jjs$','jjt$','nn$','np$','nps$','rb$','vb$','vbd$','vbn$','vbz$','nnp$']
 
 #allowed_pos = ['nn', 'nns', 'vb', 'vbp', 'vbg', 'vbd', 'nnp', 'jj', 'jjr', 'rb', 'n', 'prp$', 'prp', 'wdt']
 co_occur = {}
 
 # Regex to match only words having letters. Filter out numbers, crappy urls etc.
-regex = re.compile(r'^[a-zA-Z-]+$')
+regex = re.compile(r'^[a-zA-Z]+$')
 
 english_dict = enchant.Dict("en_US")
 ##############################################################
@@ -31,7 +31,7 @@ def clean(word):
     xword = word.strip()
     if xword.endswith("."):
         xword = word[:-1]
-    if (xword.strip() == "" or len(xword) < 3):
+    if (xword.strip() == "" or len(xword) < 2):
         __cleaned__[word] = None
         return None
 

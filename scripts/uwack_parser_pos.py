@@ -10,13 +10,12 @@ import mmap
 ##############################################################
 # Globals.
 
-allowed_pos = ['jj','jjr','jjs','jjt','nn','nns','np','nps','nr','nrs','prp','pp','rb','rbr','rbs','vb','vbd','vbg','vbn','vbz', 'vbp','vhd','vhp','vhz','vv','vvd','vvg','vvn','vvp','vvz', 'nnp', 'prp$', 'jj$','jjr$','jjs$','jjt$','nn$','np$','nps$','pp$','rb$','vb$','vbd$','vbn$','vbz$','nnp$']
+allowed_pos = ['jj','jjr','jjs','jjt','nn','nns','np','nps','nr','nrs','rb','rbr','rbs','vb','vbd','vbg','vbn','vbz', 'vbp','vhd','vhp','vhz','vv','vvd','vvg','vvn','vvp','vvz', 'nnp', 'jj$','jjr$','jjs$','jjt$','nn$','np$','nps$','rb$','vb$','vbd$','vbn$','vbz$','nnp$']
 
-#allowed_pos = ['nn', 'nns', 'vb', 'vbp', 'vbg', 'vbd', 'nnp', 'jj', 'jjr', 'rb', 'n', 'prp$', 'prp', 'wdt']
 co_occur = {}
 
 # Regex to match only words having letters. Filter out numbers, crappy urls etc.
-regex = re.compile(r'^[a-zA-Z-]+$')
+regex = re.compile(r'^[a-zA-Z]+$')
 
 english_dict = enchant.Dict("en_US")
 ##############################################################
