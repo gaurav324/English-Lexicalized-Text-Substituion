@@ -40,7 +40,7 @@ final_model = None
 
 # List of tags, only which we consider are important. Basically, all 
 # other words dont add much to the context.
-important_tags = ['NN', 'NNS', 'VB', 'VBP', 'VBN', 'VBG', 'VBD', 'VBZ', 'NNP', 'JJ', 'JJR', 'JJS', 'RB', 'N', 'PRP$', 'PRP']
+important_tags = ['NN', 'NNS', 'VB', 'VBP', 'VBN', 'VBG', 'VBD', 'VBZ', 'NNP', 'JJ', 'JJR', 'JJS', 'RB', 'N']
 
 big_thesaurus = BigThesaurus()
 ###############################################################################
