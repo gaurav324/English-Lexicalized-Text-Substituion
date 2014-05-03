@@ -109,7 +109,8 @@ def get_imp_words(tagged_sentence):
 ###############################################################################
 # Find the Pos tag nearest to index word in imp_words
 
-def find_pos_word_left(imp_words, pos_tag, index, window, context_words):
+def find_pos_word_left(imp_words, pos_tag, index, window):
+    context_words = []
     temp = index
     count = 0
     while temp > 0 and count < window:
@@ -123,12 +124,13 @@ def find_pos_word_left(imp_words, pos_tag, index, window, context_words):
                 print "Warning: " + imp_words[temp] + " is not in entire corpus"
             continue
 
-    return (context_words)
+    return context_words
 
-def find_pos_word_right(imp_words, pos_tag, index, window, context_words):
+def find_pos_word_right(imp_words, pos_tag, index, window):
+    context_words = []
     temp = index
     count = 0
-    while temp < len(imp_words) -1 and count < window:
+    while temp < len(imp_words) - 1 and count < window:
         temp +=1
         if (imp_words[temp][-1] == str(pos_tag)):
             try:
@@ -139,7 +141,7 @@ def find_pos_word_right(imp_words, pos_tag, index, window, context_words):
                 print "Warning: " + imp_words[temp] + " is not in entire corpus"
             continue
 
-    return (context_words)
+    return context_words
 ###############################################################################
 # Replacement Helpers.
 
@@ -155,42 +157,53 @@ def find_replacements_helper(imp_words, word, index, lwindow, rwindow,
     #print pos_context, imp_words, word, index, lwindow, rwindow, add, enable_synset_avg, no_rerank, left_right_add
     left_context_words = []
     right_context_words = []
-    if  pos_context:
-        #Adjective
-        if(word[-1]=='j'):
-            right_context_words = find_pos_word_right(imp_words, "n", index, rwindow, right_context_words) 
-            left_context_words = find_pos_word_left(imp_words, "n", index, lwindow, left_context_words) 
+    if pos_context:
+        if (word[-1] == 'j'):
+            # Adjective
 
-        #Adverb
-        if(word[-1]=='r'):
-            #(a) BASE_VECTOR = T * V2L + T * V2R
-            #(b) BASE_VECTOR = T * V2L + T * N2L + T * V2R + T * N2R
-            left_context_words = find_pos_word_left(imp_words, "v", index, lwindow, left_context_words) 
-            right_context_words = find_pos_word_right(imp_words, "v", index, rwindow, right_context_words) 
+            left_context_words  = []
+            right_context_words = find_pos_word_right(imp_words, "n", index, rwindow) 
+        
+        elif(word[-1] == 'n'):
+            # Noun :- Base_unions = word * ajective to left + word * verb to left + word * verb to right 
 
-            #Noun
-        if(word[-1]=='n'):
-            #Base_unions = word * ajective to left + word * verb to left + word * verb to right 
-            left_context_words = find_pos_word_left(imp_words, "j", index, lwindow, left_context_words) 
-            left_context_words = find_pos_word_left(imp_words, "v", index, lwindow, left_context_words) 
-            right_context_words = find_pos_word_right(imp_words, "v", index, rwindow, right_context_words) 
-        #Verb
-        if(word[-1]=='v'):
-        #(a) BASE_VECTOR = T * A2L + T * N2R
-        #(c) BASE_VECTOR = T * A2L + T * N2L + T * A2R + T * N2R
-        #(b) BASE_VECTOR = T * A2L + T * N2L + T * A2R + T * N2R + T* D2L + T * D2R
-        #(d) BASE_VECTOR = T * A2L + T * N2R + T * D2L + T * D2R
-            left_context_words = find_pos_word_left(imp_words, "j", index, lwindow, left_context_words) 
-            #left_context_words = find_pos_word_left(imp_words, "n", index, lwindow, left_context_words) 
-            #right_context_words = find_pos_word_right(imp_words, "j", index, rwindow, right_context_words) 
-            right_context_words = find_pos_word_right(imp_words, "n", index, rwindow, right_context_words) 
+            left_context_words = find_pos_word_left(imp_words, "j", index, lwindow) 
+            left_context_words.extend(find_pos_word_left(imp_words, "v", index, lwindow))
+
+            right_context_words = find_pos_word_right(imp_words, "v", index, rwindow) 
+        
+        elif (word[-1] == 'r'):
+            #Adverb.
+
+            # Option-1.
+            # (a) BASE_VECTOR = T * V2L + T * V2R
+            left_context_words  = find_pos_word_left(imp_words, "v", index, lwindow) 
+            right_context_words = find_pos_word_right(imp_words, "v", index, rwindow) 
+
+            # Option-2.
+            # (b) BASE_VECTOR = T * V2L + T * N2L + T * V2R + T * N2R
+            #left_context_words.extend(find_pos_word_left(imp_words, "n", index, lwindow))
+            #right_context_words.extend(find_pos_word_left(imp_words, "n", index, lwindow))
+
+        elif (word[-1] == 'v'):
+            # Verb
+
+            # Option - 1
+            # (a) BASE_VECTOR = T * A2L + T * N2R
+            left_context_words  = find_pos_word_left(imp_words, "j", index, lwindow) 
+            right_context_words = find_pos_word_right(imp_words, "n", index, rwindow) 
+
+            #(c) BASE_VECTOR = T * A2L + T * N2L + T * A2R + T * N2R
+            #(b) BASE_VECTOR = T * A2L + T * N2L + T * A2R + T * N2R + T* D2L + T * D2R
+            #(d) BASE_VECTOR = T * A2L + T * N2R + T * D2L + T * D2R
+
         #print "Context words " + word[-1]
         #print left_context_words
         #print right_context_words
-	if len(left_context_words) ==0 and len(right_context_words) == 0: 
-	    pos_context=False
+	#if len(left_context_words) == 0 and len(right_context_words) == 0: 
+	#    pos_context = False
 
-    if (pos_context != True):
+    if (pos_context is False):
         temp = index
         count = 0
         while temp != 0 and count != lwindow:
@@ -224,21 +237,22 @@ def find_replacements_helper(imp_words, word, index, lwindow, rwindow,
         if left_unison is None:
             left_unison = deepcopy(final_model.get_row(x))
         else:
-            if add:
+            if add or pos_context:
                 left_unison += final_model.get_row(x)
             else:
                 left_unison = left_unison.multiply(final_model.get_row(x))
-
+    #print "One"
     right_unison = None
     for x in right_context_words:
         if right_unison is None:
             right_unison = deepcopy(final_model.get_row(x))
         else:
-            if add:
+            if add or pos_context:
                 right_unison += final_model.get_row(x)
             else:
                 right_unison = right_unison.multiply(final_model.get_row(x))
 
+    #print "Two"
     base_unison = None
     if left_unison is None:
         base_unison = right_unison
@@ -253,12 +267,14 @@ def find_replacements_helper(imp_words, word, index, lwindow, rwindow,
 
             base_unison = left_unison
 
+    #print "Three"
     # Create a vector having context words and word to replace.
     if add:
         context_word_vector = base_unison + final_model.get_row(word)
     else:
         context_word_vector = base_unison.multiply(final_model.get_row(word)) if base_unison is not None else final_model.get_row(word)
 
+    #print "Four"
     results = {}
     cos_sim = CosSimilarity()
     
@@ -300,7 +316,8 @@ def find_replacements_helper(imp_words, word, index, lwindow, rwindow,
             if add:
                 context_repl_vector = base_unison + replacement_vector
             else:
-                context_repl_vector = base_unison.multiply(replacement_vector)
+                context_repl_vector = base_unison.multiply(replacement_vector) if base_unison is not None else replacement_vector
+
 
             results[replacement] = cos_sim.get_sim(context_word_vector, context_repl_vector)
             wnl = WordNetLemmatizer()
@@ -329,7 +346,7 @@ def find_replacements_helper(imp_words, word, index, lwindow, rwindow,
                                 if add:
                                     context_repl_vector = base_unison + replacement_vector
                                 else:
-                                    context_repl_vector = base_unison.multiply(replacement_vector)
+                                    context_repl_vector = base_unison.multiply(replacement_vector) if base_unison is not None else replacement_vector
                                 simil = cos_sim.get_sim(context_word_vector, context_repl_vector)
                                 avg += simil
                                 count += 1
@@ -369,6 +386,8 @@ def find_replacements(sentence, orig_word, lwindow, rwindow, add=False,
     @enable_synset_avg : Flag to switch synset avg approach.
     @no_rerank         : Flag to switch no_reranking approach.
     @left_right_add    : Multiply vectors in the left and right and add together.
+    @thesaurus         : Give what ratio of candidates are to be taken from thesaurus.
+    @pos_context       : Boolean which tells us whether to switch on semantic similarity
 
     """
     # Remove the START and END temporarily and tag the data.
@@ -409,7 +428,8 @@ def find_replacements(sentence, orig_word, lwindow, rwindow, add=False,
     try:
         return find_replacements_helper(final_list, word, index, int(lwindow),
                                         int(rwindow), add, enable_synset_avg, 
-                                        no_rerank, left_right_add, thesaurus, pos_context)
+                                        no_rerank, left_right_add, thesaurus, 
+                                        pos_context)
     except Exception, ex:
         print ex
         return "NONE"
@@ -464,7 +484,7 @@ def get_options():
                       help="By default, it would be zero. If 0.5, we would extract get \
                             equal number of words from similarity model and rank them.")
     parser.add_option("--pos_context", action="store_true", dest="pos_context",
-			help="If we want to improve results by using Syntax realted context vector creation.")
+    	              help="To include the semantic context suggested by Gemma.")
  
     opts, args = parser.parse_args()
     
