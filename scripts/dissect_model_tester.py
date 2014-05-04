@@ -177,25 +177,40 @@ def find_replacements_helper(imp_words, word, index, lwindow, rwindow,
 
             # Option-1.
             # (a) BASE_VECTOR = T * V2L + T * V2R
-            left_context_words  = find_pos_word_left(imp_words, "v", index, lwindow) 
-            right_context_words = find_pos_word_right(imp_words, "v", index, rwindow) 
+            #left_context_words  = find_pos_word_left(imp_words, "v", index, lwindow) 
+            #right_context_words = find_pos_word_right(imp_words, "v", index, rwindow) 
 
             # Option-2.
             # (b) BASE_VECTOR = T * V2L + T * N2L + T * V2R + T * N2R
-            #left_context_words.extend(find_pos_word_left(imp_words, "n", index, lwindow))
-            #right_context_words.extend(find_pos_word_left(imp_words, "n", index, lwindow))
+            left_context_words.extend(find_pos_word_left(imp_words, "n", index, lwindow))
+            right_context_words.extend(find_pos_word_left(imp_words, "n", index, lwindow))
 
         elif (word[-1] == 'v'):
             # Verb
 
             # Option - 1
             # (a) BASE_VECTOR = T * A2L + T * N2R
-            left_context_words  = find_pos_word_left(imp_words, "j", index, lwindow) 
-            right_context_words = find_pos_word_right(imp_words, "n", index, rwindow) 
-
+            #left_context_words  = find_pos_word_left(imp_words, "j", index, lwindow) 
+            #right_context_words = find_pos_word_right(imp_words, "n", index, rwindow) 
             #(c) BASE_VECTOR = T * A2L + T * N2L + T * A2R + T * N2R
+            #left_context_words  = find_pos_word_left(imp_words, "j", index, lwindow)
+            #left_context_words  = find_pos_word_left(imp_words, "n", index, lwindow)
+            #right_context_words = find_pos_word_right(imp_words, "j", index, rwindow)
+            #right_context_words = find_pos_word_right(imp_words, "n", index, rwindow)
+
             #(b) BASE_VECTOR = T * A2L + T * N2L + T * A2R + T * N2R + T* D2L + T * D2R
-            #(d) BASE_VECTOR = T * A2L + T * N2R + T * D2L + T * D2R
+            left_context_words  = find_pos_word_left(imp_words, "j", index, lwindow)
+            left_context_words.extend(find_pos_word_left(imp_words, "n", index, lwindow))
+            left_context_words.extend(find_pos_word_left(imp_words, "r", index, lwindow))
+            right_context_words = find_pos_word_right(imp_words, "r", index, rwindow)
+            right_context_words.extend(find_pos_word_right(imp_words, "j", index, rwindow))
+            right_context_words.extend(find_pos_word_right(imp_words, "n", index, rwindow))
+
+	    #(d) BASE_VECTOR = T * A2L + T * N2R + T * D2L + T * D2R
+            #left_context_words  = find_pos_word_left(imp_words, "j", index, lwindow)
+            #left_context_words  = find_pos_word_left(imp_words, "r", index, lwindow)
+            #right_context_words = find_pos_word_right(imp_words, "r", index, rwindow)
+            #right_context_words = find_pos_word_right(imp_words, "n", index, rwindow)
 
         #print "Context words " + word[-1]
         #print left_context_words
