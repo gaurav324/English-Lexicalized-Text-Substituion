@@ -560,6 +560,17 @@ if __name__ == "__main__":
     tree   = etree.fromstring(sxml, parser=parser)
 
     f = open(opts.output_file, "w")
+    f_n = open(opts.output_file + "__NOUN__", "w")
+    f_a = open(opts.output_file + "__ADJ__", "w")
+    f_r = open(opts.output_file + "__ADVERB__", "w")
+    f_v = open(opts.output_file + "__VERB__", "w")
+
+    f1 = open(opts.output_file + "__BEST__", "w")
+    f1_n = open(opts.output_file + "__BEST__NOUN__", "w")
+    f1_a = open(opts.output_file + "__BEST__ADJ__", "w")
+    f1_r = open(opts.output_file + "__BEST__ADVERB__", "w")
+    f1_v = open(opts.output_file + "__BEST__VERB__", "w")
+
     for el in tree.findall('lexelt'):
         for ch in el.getchildren():
             for ch1 in ch.getchildren():
@@ -583,6 +594,38 @@ if __name__ == "__main__":
                 values = ";".join(result[1])
                 #print sentence, result
                 f.write(str(el.items()[0][1]) + " " + str(ch.items()[0][1]) + " ::: " + values)
+                f1.write(str(el.items()[0][1]) + " " + str(ch.items()[0][1]) + " :: " + values.split(";")[0])
                 f.write("\n")
+                f1.write("\n")
+                
+                if word[-1] == "n":
+                    f_n.write(str(el.items()[0][1]) + " " + str(ch.items()[0][1]) + " ::: " + values)
+                    f1_n.write(str(el.items()[0][1]) + " " + str(ch.items()[0][1]) + " :: " + values.split(";")[0])
+                    f_n.write("\n")
+                    f1_n.write("\n")
+                if word[-1] == "a":
+                    f_a.write(str(el.items()[0][1]) + " " + str(ch.items()[0][1]) + " ::: " + values)
+                    f1_a.write(str(el.items()[0][1]) + " " + str(ch.items()[0][1]) + " :: " + values.split(";")[0])
+                    f_a.write("\n")
+                    f1_a.write("\n")
+                if word[-1] == "r":
+                    f_r.write(str(el.items()[0][1]) + " " + str(ch.items()[0][1]) + " ::: " + values)
+                    f1_r.write(str(el.items()[0][1]) + " " + str(ch.items()[0][1]) + " :: " + values.split(";")[0])
+                    f_r.write("\n")
+                    f1_r.write("\n")
+                if word[-1] == "v":
+                    f_v.write(str(el.items()[0][1]) + " " + str(ch.items()[0][1]) + " ::: " + values)
+                    f1_v.write(str(el.items()[0][1]) + " " + str(ch.items()[0][1]) + " :: " + values.split(";")[0])
+                    f_v.write("\n")
+                    f1_v.write("\n")
     f.close()
+    f1.close()
+    f_n.close()
+    f1_n.close()
+    f_a.close()
+    f1_a.close()
+    f_v.close()
+    f1_v.close()
+    f_r.close()
+    f1_r.close()
     print "Output file written."
