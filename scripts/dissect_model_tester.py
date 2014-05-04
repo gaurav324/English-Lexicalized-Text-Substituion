@@ -203,7 +203,7 @@ def find_replacements_helper(imp_words, word, index, lwindow, rwindow,
 	#if len(left_context_words) == 0 and len(right_context_words) == 0: 
 	#    pos_context = False
 
-    if (pos_context is False):
+    if (pos_context is None):
         temp = index
         count = 0
         while temp != 0 and count != lwindow:
@@ -300,7 +300,8 @@ def find_replacements_helper(imp_words, word, index, lwindow, rwindow,
     for replacement in replacements:
             # Get rid of cases like "fix" and "fixing".
             if word[:-2] in replacement[:-2] or replacement[:-2] in word[:-2]:
-                continue
+                if (word[-1] != "n"):
+                    continue
             # Replace only with the same POS tag.
             if replacement[-1] != word[-1]:
                 continue
@@ -368,7 +369,15 @@ def find_replacements_helper(imp_words, word, index, lwindow, rwindow,
     #print left_context_words,right_context_words, word
     #print map(lambda x: x[0][:-2], sorted(results.iteritems(), key=operator.itemgetter(1), reverse=True)[:10])
     #print "###########################"
-    return (word, map(lambda x: x[0][:-2], sorted(results.iteritems(), key=operator.itemgetter(1), reverse=True)[:10]))
+    results = map(lambda x: x[0][:-2], sorted(results.iteritems(), key=operator.itemgetter(1), reverse=True)[:10])
+    if (len(results) < 10):
+        for repl in  big_thesaurus.replacements(word):
+            if repl not in results:
+                results.append(repl)
+                if len(results) >= 10:
+                    break
+        
+    return (word, results)
 
 def find_replacements(sentence, orig_word, lwindow, rwindow, add=False, 
                       enable_synset_avg=False, no_rerank=False, left_right_add=False,
