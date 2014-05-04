@@ -16,6 +16,7 @@ from lxml       import etree
 from optparse   import OptionParser
 
 from composes.transformation.scaling.ppmi_weighting                     import PpmiWeighting
+from composes.transformation.scaling.plmi_weighting                     import PlmiWeighting
 from composes.transformation.dim_reduction.svd                          import Svd
 from composes.transformation.feature_selection.top_feature_selection    import TopFeatureSelection
 from composes.semantic_space.space                                      import Space
@@ -472,6 +473,8 @@ def get_options():
                       help="File containing co-occurance counts of the corpus.")
     parser.add_option("--ppmi", action="store_true", dest="ppmi",
                       help="If want to enable ppmi features.")
+    parser.add_option("--plmi", action="store_true", dest="plmi",
+                      help="If want to enable plmi features.")
     parser.add_option("--top_features", dest="top_features",
                       help="Restrict number of features.")
     parser.add_option("--svd", dest="svd",
@@ -511,7 +514,10 @@ def get_options():
     	              help="To include the semantic context suggested by Gemma.")
  
     opts, args = parser.parse_args()
-    
+   
+    if opts.plmi and opts.ppmi:
+        sys.exit("Choose one among ppmi and plmi")
+
     if not opts.pkl_file:
         if not opts.rows_file or not opts.cols_file or not opts.sm_file:
             sys.exit("Please give either pkl file or combination of (row, col and sm file).")
@@ -538,6 +544,8 @@ if __name__ == "__main__":
 
         if opts.ppmi:
             core_space = core_space.apply(PpmiWeighting())
+        elif opts.plmi:
+            core_space = core_space.apply(PlmiWeighting())
     
         if opts.top_features:
             core_space = core_space.apply(TopFeatureSelection(int(opts.top_features)))
