@@ -603,7 +603,7 @@ if __name__ == "__main__":
                     f1_n.write(str(el.items()[0][1]) + " " + str(ch.items()[0][1]) + " :: " + values.split(";")[0])
                     f_n.write("\n")
                     f1_n.write("\n")
-                if word[-1] == "a":
+                if word[-1] == "j":
                     f_a.write(str(el.items()[0][1]) + " " + str(ch.items()[0][1]) + " ::: " + values)
                     f1_a.write(str(el.items()[0][1]) + " " + str(ch.items()[0][1]) + " :: " + values.split(";")[0])
                     f_a.write("\n")
