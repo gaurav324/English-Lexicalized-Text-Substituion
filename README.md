@@ -3,6 +3,7 @@ English-Lexicalized-Text-Substituion
 
 We did this project as a part of Natural Language Processing course.
 
+Source code: https://github.com/gaurav324/English-Lexicalized-Text-Substituion.git
 Directory Structure:
     - ipython_notebooks/
       This is ipython test code, that we were writing and sharing among each other
