@@ -1,11 +1,11 @@
 English-Lexicalized-Text-Substituion
 ====================================
-AKANKSHA BANSAL
-GAURAV NANDA
+AKANKSHA BANSAL & GAURAV NANDA
+====================================
 
 We did this project as a part of Natural Language Processing course.
 
-== Smallest and easiest Test for someone want to test it ==
+== Easiest way to TEST. ==
 You need DISSECT TOOlkit installed to test this.
 
 python ./scripts/dissect_model_tester.py --pkl_file ./data/1_lemma_pos.pkl --xml_input ./TaskTestData/test/lexsub_test_cleaned.xml --top_features 5000 --ppmi --lwindow 1 --rwindow 1  --left_right_add  --thesaurus 1.0 --output_to some_random_file
@@ -15,6 +15,7 @@ perl ./TaskTestData/key/score.pl some_random_file__BEST__ ./TaskTestData/key/gol
 perl ./TaskTestData/key/score.pl some_random_file ./TaskTestData/key/gold -t oot
 === END ====
 
+=== DETAILS ===
 Source code: https://github.com/gaurav324/English-Lexicalized-Text-Substituion.git
 Directory Structure:
     - ipython_notebooks/
@@ -97,3 +98,5 @@ Directory Structure:
     # This would generate various output files, using thesaurus can candidate substitutions. Use 
      window size of 1 for creating context vectors. Selects top 5000 features from the vector
      space. Use PPMI (Positive Pointwise Mututal information) to select feature set.
+
+======== END OF DETAILS ========
