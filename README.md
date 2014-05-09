@@ -3,6 +3,14 @@ English-Lexicalized-Text-Substituion
 
 We did this project as a part of Natural Language Processing course.
 
+== Smallest and easiest Test for someone want to test it ==
+
+python ./scripts/dissect_model_tester.py --pkl_file ./data/1_lemma_pos.pkl --xml_input ./TaskTestData/test/lexsub_test_cleaned.xml --top_features 5000 --ppmi --lwindow 1 --rwindow 1  --left_right_add  --thesaurus 1.0 --output_to some_random_file
+
+perl TaskTestData/key/score.pl ./some_random_fie ../TaskTestData/key/gold -t best
+
+
+
 Source code: https://github.com/gaurav324/English-Lexicalized-Text-Substituion.git
 Directory Structure:
     - ipython_notebooks/
