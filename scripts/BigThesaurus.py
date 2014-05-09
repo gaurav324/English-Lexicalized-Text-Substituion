@@ -1,5 +1,4 @@
-
-
+# This reads in the dictionary downloaded from the BigHugeThesaurus site.
 class BigThesaurus:
     def __init__(self):
         _location_ = "./thesaurus_data"
