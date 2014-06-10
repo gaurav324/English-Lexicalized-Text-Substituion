@@ -2,6 +2,12 @@ English-Lexicalized-Text-Substituion
 ====================================
 
 Akanksha and I did this project as a part of Natural Language Processing course.
+English Lexicalized substiution task (http://nlp.cs.swarthmore.edu/semeval/tasks/task10/summary.shtml) was introduced in SEMEVAL-2007. After that many people have worked on this interesting problem. 
+
+We approached this task by exploring distributional semantics of the sentences. Our results are very impresssive. We have been
+able to achieve state-of-the-art numbers for one of the evaluation metric.
+
+Refer to the pdf for details.
 
 ## How to test.
 You need DISSECT TOOlkit installed to test this.
@@ -95,5 +101,3 @@ https://github.com/gaurav324/English-Lexicalized-Text-Substituion.git
     # This would generate various output files, using thesaurus can candidate substitutions. Use 
      window size of 1 for creating context vectors. Selects top 5000 features from the vector
      space. Use PPMI (Positive Pointwise Mututal information) to select feature set.
-
-======== END OF DETAILS ========
