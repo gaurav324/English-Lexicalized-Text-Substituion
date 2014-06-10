@@ -1,23 +1,20 @@
 English-Lexicalized-Text-Substituion
 ====================================
-AKANKSHA BANSAL & GAURAV NANDA
-====================================
 
-We did this project as a part of Natural Language Processing course.
+Akanksha and I did this project as a part of Natural Language Processing course.
 
-== Easiest way to TEST. ==
+## How to test.
 You need DISSECT TOOlkit installed to test this.
 
 python ./scripts/dissect_model_tester.py --pkl_file ./data/1_lemma_pos.pkl --xml_input ./TaskTestData/test/lexsub_test_cleaned.xml --top_features 5000 --ppmi --lwindow 1 --rwindow 1  --left_right_add  --thesaurus 1.0 --output_to some_random_file
 
-#Evaluation Metric.
+## Evaluation Metric.
 perl ./TaskTestData/key/score.pl some_random_file__BEST__ ./TaskTestData/key/gold -t best
 perl ./TaskTestData/key/score.pl some_random_file ./TaskTestData/key/gold -t oot
-=== END ====
 
-=== DETAILS ===
-Source code: https://github.com/gaurav324/English-Lexicalized-Text-Substituion.git
-Directory Structure:
+# Source code 
+https://github.com/gaurav324/English-Lexicalized-Text-Substituion.git
+## Directory Structure:
     - ipython_notebooks/
       This is ipython test code, that we were writing and sharing among each other
       while we were testing various features. Evaluator can ignore this.
