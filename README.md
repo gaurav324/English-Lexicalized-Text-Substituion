@@ -1,11 +1,13 @@
 English-Lexicalized-Text-Substituion
 ====================================
 
-Akanksha and I did this project as a part of Natural Language Processing course.
+Akanksha and I did this project as a part of Natural Language Processing course and Graphical Model.
 English Lexicalized substiution task (http://nlp.cs.swarthmore.edu/semeval/tasks/task10/summary.shtml) was introduced in SEMEVAL-2007. After that many people have worked on this interesting problem. 
 
 We approached this task by exploring distributional semantics of the sentences. Our results are very impresssive. We have been
-able to achieve state-of-the-art numbers for one of the evaluation metric.
+able to achieve state-of-the-art numbers for one of the evaluation metric. 
+
+We have then also approached this problem from a graphical model perspective. WE then also compare the results of these two approaches.  
 
 Refer to the pdf for details.
 
