@@ -101,3 +101,19 @@ https://github.com/gaurav324/English-Lexicalized-Text-Substituion.git
     # This would generate various output files, using thesaurus can candidate substitutions. Use 
      window size of 1 for creating context vectors. Selects top 5000 features from the vector
      space. Use PPMI (Positive Pointwise Mututal information) to select feature set.
+
+
+    m) graphical_model_tester.py
+        - This is the main script used to call the Graphical Model based approach used to create the final output file. 
+        It can be used to run all kind of simulations.
+        - Run python ./graphical_model_tester.py --help to get list of all options.
+        - <NOTE>
+            - Install Dissect tool kit before running this script.
+            - You should have BigThesaurus.py and thesaurus_data in the same folder
+              as this script.
+        - This model can be passed in raw co-occurance counts, which can be used to 
+          produce pickle files, which can be used later.
+        - There are many features in this script, which can be used to control the tarining data, the count og how many words on the left or the right need to be included n the graph being created.
+        - In order to control 
+       Sample invocations:
+       python scripts/graphical_model_tester.py --pkl_file ./data/1_lemma_pos.pkl --xml_input ./TaskTestData/test/lexsub_test_cleaned.xml --lwindow 1 --rwindow 1  --left_right_add  --thesaurus 1.0 --output_to output_nanda_6 --start_word 1 --end_word 2100
